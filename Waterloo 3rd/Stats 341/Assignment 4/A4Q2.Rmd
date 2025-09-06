@@ -1,0 +1,204 @@
+---
+title: "A4Q2"
+author: "Lily Li"
+date: "2025-07-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q2
+# (a)
+
+
+
+```{r}
+library(knitr)
+
+df_law = read.csv("Lawnodes.csv")
+#df_law$idx = 1:nrow(df_law)
+hist(df_law$citecount)
+```
+
+```{r}
+set.seed(341)
+df_S05 = df_law[sample(1:nrow(df_law), 5) , c("ID","citecount")]
+df_S10 = df_law[sample(1:nrow(df_law), 10) , c("ID","citecount")]
+df_S20 = df_law[sample(1:nrow(df_law), 20) , c("ID","citecount")]
+df_S50 = df_law[sample(1:nrow(df_law), 50) , c("ID","citecount")]
+```
+
+
+```{r}
+pop_mean <- mean(df_law$citecount)
+pop_var <- var(df_law$citecount)
+pop_unique <- length(unique(df_law$citecount))
+
+get_info <- function(df) {
+  c(mean = mean(df$citecount), var = var(df$citecount), unique = length(unique(df$citecount)))
+}
+
+s05_info <- get_info(df_S05)
+s10_info <- get_info(df_S10)
+s20_info <- get_info(df_S20)
+s50_info <- get_info(df_S50)
+
+kable(data.frame(
+  Dataset = c("Population", "Sample of Size 5", "Sample of Size 10", "Sample of Size 20", "Sample of Size 50"),
+  `Sample Size` = c(nrow(df_law), 5, 10, 20, 50),
+  `Mean Citecount` = c(pop_mean, s05_info[1], s10_info[1], s20_info[1], s50_info[1]),
+  `Variance Citecount` = c(pop_var, s05_info[2], s10_info[2], s20_info[2], s50_info[2]),
+  `Unique Citation Counts` = c(pop_unique, s05_info[3], s10_info[3], s20_info[3], s50_info[3])
+))
+
+```
+
+
+# (b)
+
+```{r}
+#set.seed(341)
+
+B=1000
+S_idx = 1:5
+n = length(S_idx)
+means = rep(NA,B)
+vars = rep(NA,B)
+uniques_Ncite = rep(NA,B)
+uniques_ID = rep(NA,B)
+
+
+for (k in 1:B) {
+  Sstar_idx <- sample(S_idx, n, replace = TRUE)
+  samp <- df_S05[Sstar_idx,]
+  means[k] <- mean(samp$citecount)
+  vars[k] <- var(samp$citecount)
+  uniques_Ncite[k] <- length(unique(samp$citecount))
+  uniques_ID[k] <- length(unique(samp$ID))
+}
+
+par(mfrow = c(2, 2))
+hist(means, main = "Resampled Means(n = 5)")
+hist(vars, main = "Resampled Variances(n = 5)")
+hist(uniques_Ncite, main = "Unique Citation Counts")
+hist(uniques_ID, main = "Unique Legal Decision IDs")
+```
+
+# (c)
+
+```{r}
+B=1000
+S_idx_50 = 1:50
+n_50 = length(S_idx_50)
+means_50 = rep(NA,B)
+vars_50 = rep(NA,B)
+uniques_Ncite_50 = rep(NA,B)
+uniques_ID_50 = rep(NA,B)
+
+
+for (k in 1:B) {
+  Sstar_idx_50 <- sample(S_idx_50, n_50, replace = TRUE)
+  samp_50 <- df_S50[Sstar_idx_50,]
+  means_50[k] <- mean(samp_50$citecount)
+  vars_50[k] <- var(samp_50$citecount)
+  uniques_Ncite_50[k] <- length(unique(samp_50$citecount))
+  uniques_ID_50[k] <- length(unique(samp_50$ID))
+}
+
+par(mfrow = c(2, 2))
+hist(means_50, main = "Resampled Means(n = 50)")
+hist(vars_50, main = "Resampled Variances(n = 50)")
+hist(uniques_Ncite_50, main = "Unique Citation Counts")
+hist(uniques_ID_50, main = "Unique Legal Decision IDs")
+
+```
+
+
+# (d)
+
+```{r}
+
+B=1000
+D=100
+S_idx = 1:5
+n = length(S_idx)
+means = rep(NA,B*D)
+vars = rep(NA,B*D)
+uniques_Ncite = rep(NA,B*D)
+uniques_ID = rep(NA,B*D)
+
+for (k in 1:B) {
+  Sstar_idx <- sample(S_idx, n, replace = TRUE)
+    for (l in 1:D) {
+      Sstarstar_idx <- sample(Sstar_idx, n, replace = TRUE)
+      samp <- df_S05[Sstarstar_idx, ]
+      i <- l + (k - 1) * D
+      means[i] <- mean(samp$citecount)
+      vars[i] <- var(samp$citecount)
+      uniques_Ncite[i] <- length(unique(samp$citecount))
+      uniques_ID[i] <- length(unique(samp$ID))
+    }
+  
+}
+
+par(mfrow = c(2,2))
+
+hist(means, main = "Double Resampled Means (n=5)")
+hist(vars, main = "Double Resampled Variances (n=5)")
+hist(uniques_Ncite, main = "Unique Citation Counts (Double)")
+hist(uniques_ID, main = "Unique IDs (Double)")
+
+
+```
+
+# (e)
+
+
+```{r}
+
+B=1000
+D=100
+S_idx_50 = 1:50
+n_50 = length(S_idx_50)
+means_50 = rep(NA,B*D)
+vars_50 = rep(NA,B*D)
+uniques_Ncite_50 = rep(NA,B*D)
+uniques_ID_50 = rep(NA,B*D)
+
+for (k in 1:B) {
+  Sstar_idx_50 <- sample(S_idx_50, n_50, replace = TRUE)
+    for (l in 1:D) {
+      Sstarstar_idx_50 <- sample(Sstar_idx_50, n_50, replace = TRUE)
+      samp_50 <- df_S50[Sstarstar_idx_50, ]
+      i <- l + (k - 1) * D
+      means_50[i] <- mean(samp_50$citecount)
+      vars_50[i] <- var(samp_50$citecount)
+      uniques_Ncite_50[i] <- length(unique(samp_50$citecount))
+      uniques_ID_50[i] <- length(unique(samp_50$ID))
+    }
+  
+}
+
+par(mfrow = c(2,2))
+
+hist(means_50, main = "Double Resampled Means (n=50)")
+hist(vars_50, main = "Double Resampled Variances (n=50)")
+hist(uniques_Ncite_50, main = "Unique Citation Counts (Double)")
+hist(uniques_ID_50, main = "Unique IDs (Double)")
+
+```
+
+# (f)
+
+The sample of size 5 does not effectively capture the characteristics of the population distribution. The resampled means are centered around 40–50, and the variances around 2,500–3,000. These distributions appear roughly bell-shaped and relatively symmetric, with a few outliers on either end. In contrast, the double resamples show greater variability, and their distributions tend to flatten, appearing closer to uniform. Notably, some central values occur less frequently than extreme ones, suggesting instability. Importantly, neither approach resembles the original population distribution, which is heavily right-skewed with a high density near zero and long tails—something neither the small sample nor its resamplings successfully reproduce.
+
+In terms of diversity, both resampling and double resampling from a size-5 sample result in very limited variation. The number of unique citation counts and legal decision IDs typically ranges between 3 and 4 out of 5, reflecting high duplication rates. These findings indicate that a sample of size 5 is insufficient to produce reliable estimates of the population’s distributional shape or diversity.
+
+# (g)
+
+The sample of size 50 performs significantly better than the sample of size 5 in preserving key characteristics of the population distribution. The resampled means remain centered around 40–50, while variances generally fall between 5,000 and 8,000. Though both distributions exhibit some right skewness, they start to echo the long-tailed nature of the population histogram. The double resampled means are even more concentrated between 0 and 50, aligning more closely with the population’s strong right skew and high concentration near zero. This resemblance is especially evident in the variance distribution, which also shows increased density at lower values.
+
+In terms of diversity, both resampling and double resampling from a size-50 sample lead to much broader variation. The number of unique citation counts and legal decision IDs is typically in the range of 15 to 25, indicating far less duplication and better coverage of the original dataset. Overall, the sample of size 50 provides a substantially improved approximation of the population, both in terms of distributional shape and data richness.
+

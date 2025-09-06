@@ -1,0 +1,137 @@
+---
+title: "A3Q1"
+author: "Lily Li"
+date: "2025-07-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Q1
+
+# (a)
+
+```{r}
+mlb_bs <- read.csv("MLB_Batting_Boxscores_2024-04.csv")
+set.seed(341)
+s_idx <- sample(1:nrow(mlb_bs), 500)
+mlb_samp <- mlb_bs[s_idx, ]
+```
+
+```{r}
+N <- nrow(mlb_bs)
+n <- 500
+pi_u <- rep(n / N, n)
+
+ht_total_bases <- (1 / N) * sum(mlb_samp$total_bases / pi_u)
+ht_total_app <- (1 / N) * sum(mlb_samp$plate_appearances / pi_u)
+
+ht_total_bases
+ht_total_app
+
+
+```
+
+# (b)
+
+```{r}
+estVarHT <- function(y_u, pi_u, pi_uv){
+## y_u = an n element array containing the variate values for the sample
+## pi_u = an n element array containing the (marginal) inclusion probabilities for the sample
+## pi_uv = an nxn matrix containing the joint inclusion probabilities for the sample
+delta <- pi_uv - outer(pi_u, pi_u)
+estimateVar <- sum( (delta/pi_uv) * outer(y_u/pi_u,y_u/pi_u) )
+return(abs(estimateVar))
+}
+
+```
+
+
+```{r}
+
+pi_uv <- matrix( (n* (n-1)) / (N * (N-1)), nrow = n, ncol = n)
+
+diag(pi_uv) <- pi_u
+
+se_total_bases <- sqrt(estVarHT(mlb_samp$total_bases, pi_u, pi_uv)) / N
+
+se_total_app <- sqrt(estVarHT(mlb_samp$plate_appearances, pi_u, pi_uv)) / N
+
+
+se_total_bases
+se_total_app
+
+```
+
+# (c)
+
+```{r}
+z <- qnorm(0.75)
+ci_total_bases <- c(
+  ht_total_bases - z * se_total_bases,
+  ht_total_bases + z * se_total_bases
+)
+
+ci_total_bases
+
+```
+
+# (d)
+```{r}
+set.seed(341)
+mlb_top = subset(mlb_bs, batting_order <= 3)
+top_idx <- sample(1:nrow(mlb_top), 500)
+top_samp <- mlb_top[top_idx, ]
+mlb_bot = subset(mlb_bs, batting_order >= 7)
+bot_idx <- sample(1:nrow(mlb_bot), 500)
+bot_samp <- mlb_bot[bot_idx, ]
+```
+
+# (e)
+
+```{r}
+
+N_top <- nrow(mlb_top)
+N_bot <- nrow(mlb_bot)
+
+pi_u_top <- rep(500 / N_top, 500)
+pi_u_bot <- rep(500 / N_bot, 500)
+
+ht_plate_top <- sum(top_samp$plate_appearances / pi_u_top) / N_top
+
+ht_plate_bot <- sum(bot_samp$plate_appearances / pi_u_bot) / N_bot
+
+ht_plate_top
+ht_plate_bot
+
+```
+
+
+# (f)
+
+```{r}
+# joint inclusion probability
+
+pi_uv_top <- matrix( (500 * 499)/(N_top * (N_top - 1)), 500, 500)
+diag(pi_uv_top) <- pi_u_top
+
+pi_uv_bot <- matrix( (500 * 499)/(N_bot * (N_bot - 1)), 500, 500)
+diag(pi_uv_bot) <- pi_u_bot
+
+
+# se
+se_plate_top <- sqrt(estVarHT(top_samp$plate_appearances, pi_u_top, pi_uv_top)) / N_top
+
+se_plate_bot <- sqrt(estVarHT(top_samp$plate_appearances, pi_u_bot, pi_uv_bot)) / N_bot
+
+# CI
+ci_plate_top <- c(ht_plate_top - z * se_plate_top, ht_plate_top + z * se_plate_top)
+
+ci_plate_bot <- c(ht_plate_bot - z * se_plate_bot, ht_plate_bot + z * se_plate_bot)
+
+ci_plate_top
+ci_plate_bot
+
+```

@@ -1,0 +1,30 @@
+Notes for Stat 341 W25 01-1
+
+Syllabus (to be uploaded)
+Notes on Learn
+Piazza is ready
+Zoom
+Tutorials are optional
+
+4 assignments, 2 midterms, 1 final
+
+This course is medium grading difficulty, high assignment intensity
+	- R programming burden
+
+Machine learning is a bridge between statistics and AI
+
+Main topics
+	- Sampling and resampling
+		- Bootstrap
+	- Gradient descent
+	- Estimators like Horvitz Thompson
+	- Permutation tests
+	- Rigourous treatment of p-values
+	
+
+
+Pet topics
+	- Generalized optimizer optim()
+	- Rural Ontario StatsCan dataset
+	- Non-centrality parameter
+	- Mimic models applied to neural network output

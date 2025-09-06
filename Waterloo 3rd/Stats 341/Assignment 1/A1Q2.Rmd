@@ -1,0 +1,88 @@
+---
+title: "A1Q2"
+author: "Lily Li"
+date: "2025-05-15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Q2
+
+
+```{r}
+library(cancensus)
+library(readr)
+library(ggplot2)
+library(dplyr)
+all_regions = list_census_regions("CA21") # 2021 census
+rural_on_regions = subset(all_regions,
+                          level=="CSD" &  # census subdivisions
+                            PR_UID == 35 & # in Ontario
+                            is.na(CMA_UID)) # not inside a metropolitan area
+
+csd_list = list(CSD = rural_on_regions$region)
+
+census_data = get_census(dataset = "CA21",
+                         regions = csd_list,
+                         level = "CSD")
+
+names(census_data)[4] = "Area"
+head(census_data)
+```
+
+# (b)
+
+```{r}
+cor(census_data$Area, census_data$Population, use = "complete.obs")
+```
+
+
+# (c)
+
+```{r}
+ggplot(census_data, aes(x = Area, y = Population)) + geom_point(alpha = 0.6) +
+  labs(title = "Population vs Area of Rural CSDs", 
+       x = "Land Area km²", y = "Population") + 
+  theme_minimal()
+```
+
+From the scatterplot above, it is clear that most data points are densely clustered near the origin, while a few extreme outliers with very large land areas stretch the x-axis. This uneven spread makes it difficult to observe any meaningful relationship in the raw scale. Applying a **logarithmic transformation** to both area and population would help by **compressing the large values** and **spreading out the smaller, clustered points**, thereby making the overall relationship more linear and likely increasing the correlation coefficient. 
+
+
+# (d)
+
+```{r}
+transformations = list(log = function (x) log(x + 1), sqrt = function(x) sqrt(x),
+                       inv = function(x) -1 / (x + 1), square = function(x) x^2,
+                       cube = function(x) x^3)
+
+results = data.frame(Area_transformed = character(0),
+                     Population_transformed = character(0),
+                     Correlation = numeric(0))
+for(area_name in names(transformations)) {
+  for(pop_name in names(transformations)) {
+    try({
+      tx = transformations[[area_name]](census_data$Area)
+      ty = transformations[[pop_name]](census_data$Population)
+      cor_val = cor(tx, ty, use = "complete.obs")
+      results = rbind(results, data.frame(Area_transformed = area_name, 
+                                          Population_transformed = pop_name, 
+                                          Correlation = cor_val))
+    }, silent = TRUE)
+  }
+}
+
+results <- results %>% mutate(abs_corr = abs(Correlation)) %>% 
+  arrange(desc(abs_corr))
+
+print(results)
+```
+
+
+Among all tested combinations of power transformations, the **logarithmic transformation applied to both area and population** resulted in the strongest linear correlation. The corresponding Pearson correlation coefficient was **0.5098**, indicating a moderate positive linear relationship after the log-log transformation.
+
